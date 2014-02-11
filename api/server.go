@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"github.com/codegangsta/martini"
 	"strings"
-	//"fmt"
+//	"fmt"
 )
 
 type geojson struct {
@@ -116,23 +116,115 @@ m.Get("/states/:geoid/county", func(params martini.Params) string {
 	/*The following code selects the information needed from the above host to be accessed and used here. 
 	$1 is replaced with the given parameter*/
 
-	rows, err := db.Query("SELECT geoid as geo FROM tl_2013_us_state WHERE geoid = $1",params["geoid"])
+	rows, err := db.Query("SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_us_county WHERE statefp = $1",params["geoid"])
 	if err != nil {
 		return err.Error()
 	}
 
 	/*The below variables are strings that contain the selected information from the above query*/
 
+	var namelsad string
+	var geom string
 	var geoid string
+	counties :=[]map[string]string{}
 	for rows.Next() {
-        	if err := rows.Scan(&geoid); err != nil {
+        	if err := rows.Scan(&geom, &namelsad, &geoid); err != nil {
             	return err.Error()
         	}
+        	county := map[string]string{
+            	"geometry": geom ,
+            	"Properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\"}",
+            	"type":"Feature",
+            }
+        	counties = append(counties, county)
         }
-
-	return "These are the counties for state with geoid: " +geoid+""
+        b, err := json.Marshal(counties)
+        c := strings.Replace(string(b), "\\","",-1)
+        c = strings.Replace(c, "Properties\":\"", "Properties\":", -1)
+		c = strings.Replace(c, "\",\"geometry", ",\"geometry", -1)
+		c = strings.Replace(c, "geometry\":\"{", "geometry\":{", -1)
+		c = strings.Replace(c, "\",\"type", ",\"type", -1)
+        d := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+c+"}"
+    //result := "\n"+string(counties)+""
+	return d//result
 
 })
+
+m.Get("/states/:geoid/tracts", func(params martini.Params) string {
+
+	db, err := sql.Open("postgres", "host=lor.availabs.org password=transit user=postgres dbname=geocensus sslmode=require")
+	if err != nil {
+		return err.Error()
+	}
+	rows, err := db.Query("SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+params["geoid"]+"_tract")
+	if err != nil {
+		return err.Error()
+	}	
+
+	var namelsad string
+	var geom string
+	var geoid string
+	tracts :=[]map[string]string{}
+	for rows.Next() {
+        	if err := rows.Scan(&geom, &namelsad, &geoid); err != nil {
+            	return err.Error()
+        	}
+        	tract := map[string]string{
+            	"geometry": geom ,
+            	"Properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\"}",
+            	"type":"Feature",
+            }
+        	tracts = append(tracts, tract)
+        }
+        b, err := json.Marshal(tracts)
+        c := strings.Replace(string(b), "\\","",-1)
+        c = strings.Replace(c, "Properties\":\"", "Properties\":", -1)
+		c = strings.Replace(c, "\",\"geometry", ",\"geometry", -1)
+		c = strings.Replace(c, "geometry\":\"{", "geometry\":{", -1)
+		c = strings.Replace(c, "\",\"type", ",\"type", -1)
+        d := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+c+"}"
+    //result := "\n"+string(counties)+""
+	return d//result
+
+	})
+
+m.Get("/states/:geoid/bg", func(params martini.Params) string {
+
+	db, err := sql.Open("postgres", "host=lor.availabs.org password=transit user=postgres dbname=geocensus sslmode=require")
+	if err != nil {
+		return err.Error()
+	}
+	rows, err := db.Query("SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+params["geoid"]+"_bg")
+	if err != nil {
+		return err.Error()
+	}	
+
+	var namelsad string
+	var geom string
+	var geoid string
+	bgs :=[]map[string]string{}
+	for rows.Next() {
+        	if err := rows.Scan(&geom, &namelsad, &geoid); err != nil {
+            	return err.Error()
+        	}
+        	bg := map[string]string{
+            	"geometry": geom ,
+            	"Properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\"}",
+            	"type":"Feature",
+            }
+        	bgs = append(bgs, bg)
+        }
+        b, err := json.Marshal(bgs)
+        c := strings.Replace(string(b), "\\","",-1)
+        c = strings.Replace(c, "Properties\":\"", "Properties\":", -1)
+		c = strings.Replace(c, "\",\"geometry", ",\"geometry", -1)
+		c = strings.Replace(c, "geometry\":\"{", "geometry\":{", -1)
+		c = strings.Replace(c, "\",\"type", ",\"type", -1)
+        d := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+c+"}"
+    //result := "\n"+string(counties)+""
+	return d//result
+
+	})
 
   m.Run()
 }

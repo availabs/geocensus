@@ -15,6 +15,9 @@ Install Stuff we need
 go get github.com/codegangsta/martini
 go get github.com/lib/pq
 
+
+
+
 v = ["12",14,123,235,46,346,346];
 v[0];
 v = {"test":0,"test2":425}
