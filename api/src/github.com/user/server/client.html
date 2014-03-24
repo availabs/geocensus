@@ -1,0 +1,22 @@
+<!-- //html page in java script that makes calls to server
+
+//Need jquery -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script >
+
+$(function(){
+	console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/states/36/tracts",
+	  type: "POST",
+	  data: { geoCen: "('115','001')", state:"36", location: "New York" }
+	})
+	.done(function( data ) {
+	    $('body').append(data);
+	    console.log(data);
+	});
+
+
+})
+
+</script>
