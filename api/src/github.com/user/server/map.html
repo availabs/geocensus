@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<head>
+<style>
+
+@import url(//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.css);
+
+#map {
+  width: 960px;
+  height: 500px;
+}
+
+svg {
+  position: relative;
+}
+
+path {
+  /*
+  fill: #000;
+  fill-opacity: .2;*/
+  stroke: #000;
+  stroke-width: 0.5px;
+}
+
+path:hover {
+  fill: brown;
+  fill-opacity: .7;
+}
+
+</style>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet-src.js"></script> -->
+<script src="leaflet-src.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="uscounties.js"></script>
+<script src="usstates.js"></script>
+
+</head>
+<body>
+  <div id="map"></div>
+  <div id="output"><br></div>
+  <select id="variousStubs">
+
+  <option value="table_id">TableID</option>
+
+  </select>
+  <select id="lookupType">
+     <option value="040">States</option>
+     <!--<option value="050">Counties</option>
+     <option value="140">Tracts</option>-->
+  </select>
+  <select id="stateList">
+  </select>
+  <select id="selectVar"></select>
+    <button type="button" onclick="recolorMap($(selectVar).val(), $('#lookupType').val(),$('#stateList').val())">recolor</button></div>
+</body>
+<script>
+
+  //Create the map below
+
+  var map = new L.Map("map", {center: [37.8, -96.9], zoom: 4})
+      .addLayer(new L.TileLayer("http://{s}.tiles.mapbox.com/v3/examples.map-vyofok3q/{z}/{x}/{y}.png"));
+
+  var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+      g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+  var color = d3.scale.quantile()
+      .range(["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"])
+      //.interpolate(d3.interpolateHcl);
+  var densities = [];
+  var feature = {};
+  var path = {};
+  var current_collection = {};
+
+  $('#lookupType').on("change",function(e){
+    if($(this).val() === "050"){
+    $("#stateList").empty();
+    $.ajax({
+      url: "http://localhost:3000/ACS2010_5YEAR/states",
+      type: "POST",
+      data: { stateList:"050", countyList:"", geoVar:""},
+      dataType: 'json' 
+    }).done(function( data ) {
+        data.forEach(function(record){
+        var key = "";
+        for(name in record){key=name;}
+        $("#stateList").append("<option value='"+record[key]+"'>"+key+"</option>");
+        
+        });
+      });
+    } else if($(this).val() === "140"){
+      $("#stateList").empty();
+      //console.log('hello world');
+  $.ajax({
+      url: "http://localhost:3000/ACS2010_5YEAR/states",
+      type: "POST",
+      data: { stateList:"", countyList:"", geoVar:""},
+      dataType: 'json' 
+    }).done(function( data ) {
+        data.forEach(function(record){
+        var key = "";
+        for(name in record){key=name;}
+        $("#stateList").append("<option value='"+record[key]+"'>"+key+"</option>");
+        
+        });
+      });
+    }else{
+      $("#stateList").empty();
+    }
+  });
+
+
+//var collection = topojson.feature(uscounties, uscounties.objects.counties);//usstates;
+function recolorMap(censusVar, collection,state){
+
+  if(censusVar != null && collection != null){
+    if(collection === "040"){
+      collection = usstates;
+      //console.log("States "+collection);
+    }else if(collection ==="050"){
+      //console.log(state)
+      //state = null
+      //collection = topojson.feature(uscounties, uscounties.objects.counties);
+      collection = tractOfState(state,"c");
+      collection = JSON.parse(collection);
+    }else if(collection ==="140"){
+      collection = tractOfState(state,"");
+      collection = JSON.parse(collection);
+      //console.log("test "+collection);
+    }
+    current_collection = collection;
+    if(state == null){
+    var cenData = getVariable("",censusVar);  //get total population;
+    }else{
+    var cenData = getVariable(state,censusVar);  //get total population;  
+    }
+    //console.log("Hello! "+censusVar);
+    var transform = d3.geo.transform({point: projectPoint});
+    path = d3.geo.path().projection(transform);
+
+    
+    collection.features.forEach(function(feature){
+      //console.log(feature.id);
+      if(state == null){
+      record = getRecordFromCensus(feature.id,cenData);
+      }else{
+      record = getRecordFromCensus(feature.properties.geoid,cenData);
+      }
+      if(typeof record.CensusVariables != 'undefined'){
+        //console.log('something  ',record.CensusVariables[0]);
+        for(key in record.CensusVariables[0] ){
+          feature.properties[key] = record.CensusVariables[0][key];
+          densities.push(record.CensusVariables[0][key])
+        }
+      }else{
+        feature.properties[censusVar] = 0;
+      }
+    })
+
+    
+    densities = collection.features
+        .map(function(d) { 
+          if(!isFinite(path.area(d))){ return 0;}
+          return d.properties.density = (d.properties[censusVar] / path.area(d))*1; })
+        .sort(function(a, b) { return a - b; });
+
+    color.domain(densities);
+
+    g.selectAll("path").remove();
+    feature = g.selectAll("path")
+        .data(collection.features)
+      .enter().append("path")
+      .style("fill", function(d) { var density = d.properties[censusVar]/path.area(d); return color(density*1); })
+      .on('mouseover',function(d){
+        $('#output').html( d.properties[censusVar]/path.area(d)+", area:"+path.area(d));
+      });
+
+    map.on("viewreset", reset);
+    reset();
+
+    // Reposition the SVG to cover the features.
+
+    // Use Leaflet to implement a D3 geometric transformation.
+}
+}
+function reset() {
+      var bounds = path.bounds(current_collection),
+          topLeft = bounds[0],
+          bottomRight = bounds[1];
+
+      svg .attr("width", bottomRight[0] - topLeft[0])
+          .attr("height", bottomRight[1] - topLeft[1])
+          .style("left", topLeft[0] + "px")
+          .style("top", topLeft[1] + "px");
+
+      g   .attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+      feature.attr("d", path);
+    }
+    function projectPoint(x, y) {
+      //if(!x || !y){
+      //  console.log(x,y);
+      //}
+      var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+      this.stream.point(point.x, point.y);
+    }
+ 
+function getRecordFromCensus(geoid,censusdata){
+    var output = [];
+    censusdata.forEach(function(state){
+      if(state.Geoid == geoid){
+       output = state;
+      }
+    })
+    return output;
+  }
+function getVariable(state,cenVar){
+  //console.log(cenVar+" ('B01001001') "+$('#lookupType').val())  
+  var output = [];
+  $.ajax({
+    url: "http://localhost:3000/ACS2012_5YEAR/Query",
+    type: "POST",
+    data: { stateList:""+state+"", countyList:""+$('#lookupType').val()+"", geoVar:"('"+cenVar+"')"},
+    dataType: 'json' ,
+    async: false
+  }).done(function(data){
+    //console.log(data)
+    output = data;
+  });
+
+  return output;
+}
+function tractOfState(state,c){
+  var collection;
+$.ajax({
+        url: "http://localhost:3000/states/36/tracts",
+        type: "POST",
+      data: { geoCen:""+c+"", state:""+state+""},
+      async: false
+    })
+    .done(function( data ) {
+      console.log(data)
+      collection = data;
+    });
+    return collection;
+  }
+
+function doQuery(x)
+{
+  $("#selectVar").empty();
+  $.ajax({
+    url: "http://localhost:3000/ACS2010_5YEAR/",
+    type: "POST",
+    data: { table_ID: "('"+x+"')"},
+    dataType: 'json' 
+  })
+  .done(function( data ) {
+
+      data.forEach(function(record){
+        var key = "";
+        for(name in record){key=name;}
+          if(key.indexOf(".")==-1){
+            $("#selectVar").append("<option value='"+key+"'>"+key+" "+record[key]+"</option>");
+          }
+      });
+  });
+}
+$(function(){
+$.ajax({
+    url: "http://localhost:3000/ACS2010_5YEAR/",
+    type: "GET",
+    data: { table_ID: "x"},
+    dataType: 'json' 
+  })
+  .done(function( data ) {
+      $("#lookupType").append("<option value=\"050\">Counties</option>")
+      $("#lookupType").append("<option value=\"140\">Tracts</option>")
+      data.forEach(function(record){
+        var key = "";
+        for(name in record){key=name;}
+        $("#variousStubs").append("<option value='"+key+"'>"+record[key]+"</option>");
+        
+      });
+  });
+  $('#variousStubs').on("change",function(e){
+    doQuery($(this).val())
+  });
+})
+
+</script>

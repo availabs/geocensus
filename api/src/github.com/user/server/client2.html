@@ -1,0 +1,167 @@
+<!-- //html page in java script that makes calls to server
+
+//Need jquery -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+<!--<select id="variousStubs">
+
+<option value="table_id">TableID</option>
+
+</select>
+<br>
+<input id="test" type="text" name="value">
+<br>
+<button type="button" onclick="doQuery()">Do Query</button>-->
+<div id="output"></div>
+<body>
+<script >
+
+
+/*function doQuery(x)
+{
+	console.log(x);
+	$.ajax({
+	  url: "http://localhost:3000/ACS2010_5YEAR/",
+	  type: "POST",
+	  data: { table_ID: "('"+x+"')"},
+	  dataType: 'json' 
+	})
+	.done(function( data ) {
+		//$("#output").html(x+"<br>")
+	    //data.forEach(function(record){
+	    	var key = "";
+	    	//for(name in record){key=name;}
+	    	//$("#output").append(key+" "+record[key])
+	    	//$("#output").append("<br>")
+	    //});
+	});
+}*/
+$(function(){
+	/*console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2010_5YEAR/states",
+	  type: "POST",
+	  data: { stateList:"('36','34')", countyList:"('001')", tractList:"", geoVar:"('B01001001','B01001002','B02001007')"},
+	  dataType: 'json' 
+	})
+	.done(function(data){
+	console.log("States");
+	console.log(data);
+	});
+
+	console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2012_5YEAR/censusTracts",
+	  type: "POST",
+	  data: { stateList:"('36001014503')", geoVar:"('B01001001','B01001002')"},
+	  dataType: 'json' 
+	})
+	.done(function(data){
+	console.log("Census tracts");
+	console.log(data);
+	});
+	console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2012_5YEAR/blockGroups",
+	  type: "POST",
+	  data: { stateList:"('360010145031')", geoVar:"('B01001001','B01001002')"},
+	  dataType: 'json' 
+	})
+	.done(function(data){
+	console.log("Block groups");
+	console.log(data);
+	});*/
+	var current_collection = {};
+	//console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2012_5YEAR/QuerySpecial",
+	  type: "POST",
+	  data: { stateList:"34", countyList:"140", geoVar:"a"},
+	  dataType: 'json' 
+	})
+	.done(function(data){
+		//console.log("Variable Query");
+		//console.log("A "+data["CensusVariables"])
+		/*getNjCensusTracts(function(geodata){
+			current_collection = JSON.parse(geodata);
+			current_collection.features.forEach(function(feature){
+
+			data.forEach(function(element){
+				//console.log(element)
+		      	record = getRecordFromCensus(feature.properties.geoid,element);
+		      	record.forEach(function(cenVar){
+			      for(key in cenVar ){
+			          feature.properties[key] = cenVar[key];
+			          //densities.push(record.CensusVariables[0][key])
+			        }
+		      	});
+	    	});
+		})*/
+
+	    //data.forEach(function(record){
+        //var key = "";
+        //console.log(record)
+        //for(name in record){key=name;}
+       	//console.log(key)
+       	//console.log(record["Geoid"])
+      //});
+			
+		//})
+		//$('body').append(JSON.stringify(current_collection));
+		console.log('cendata:',data)//,'feature:',current_collection);
+	//})
+	});
+
+	function getNjCensusTracts(callback){
+		$.ajax({
+			 url: "http://localhost:3000/states/36/tracts",
+        	 type: "POST",
+      		 data: { geoCen:"", state:"34"}
+			}).done(function(data){
+			callback(data);
+		})
+	}
+	function getRecordFromCensus(geoid,censusdata){
+    var output = [];
+    //censusdata.CensusVariables.forEach(function(state){
+      if(censusdata.Geoid == geoid){
+       return censusdata.CensusVariables;
+      }
+    //})
+    return output;
+  }
+	/*console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2012_5YEAR/states_and_counties",
+	  type: "POST",
+	  data: { stateList:"('36','34')", countyList:"('001')", tractList:"", geoVar:"('B01001001')"},
+	  dataType: 'json' 
+	})
+	.done(function(data){
+	console.log("States and counties")
+	console.log(data);
+	});*/
+
+	/*$.ajax({
+	  url: "http://localhost:3000/ACS2010_5YEAR/",
+	  type: "GET",
+	  data: { table_ID: "x"},
+	  dataType: 'json' 
+	})
+	.done(function( data ) {
+	    //$('body').append(data);
+	    console.log(data);
+	    data.forEach(function(record){
+	    	var key = "";
+	    	for(name in record){key=name;}
+	    	$("#variousStubs").append("<option value='"+key+"'>"+record[key]+"</option>")
+	    });
+	});
+	$('#variousStubs').on("change",function(e){
+		doQuery($(this).val())
+	});*/
+
+})
+
+</script>
+</body>
