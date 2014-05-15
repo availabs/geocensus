@@ -3,21 +3,36 @@
 //Need jquery -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
+<<<<<<< HEAD
 <!--<select id="variousStubs">
+=======
+<select id="variousStubs">
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 
 <option value="table_id">TableID</option>
 
 </select>
+<<<<<<< HEAD
 <br>
+=======
+<!--<br>
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 <input id="test" type="text" name="value">
 <br>
 <button type="button" onclick="doQuery()">Do Query</button>-->
 <div id="output"></div>
+<<<<<<< HEAD
 <body>
 <script >
 
 
 /*function doQuery(x)
+=======
+<script >
+
+
+function doQuery(x)
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 {
 	console.log(x);
 	$.ajax({
@@ -27,6 +42,7 @@
 	  dataType: 'json' 
 	})
 	.done(function( data ) {
+<<<<<<< HEAD
 		//$("#output").html(x+"<br>")
 	    //data.forEach(function(record){
 	    	var key = "";
@@ -42,6 +58,23 @@ $(function(){
 	  url: "http://localhost:3000/ACS2010_5YEAR/states",
 	  type: "POST",
 	  data: { stateList:"('36','34')", countyList:"('001')", tractList:"", geoVar:"('B01001001','B01001002','B02001007')"},
+=======
+		$("#output").html(x+"<br>")
+	    data.forEach(function(record){
+	    	var key = "";
+	    	for(name in record){key=name;}
+	    	$("#output").append(key+" "+record[key])
+	    	$("#output").append("<br>")
+	    });
+	});
+}
+$(function(){
+	console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2010_5YEAR/states",
+	  type: "POST",
+	  data: { stateList:"('36','34')", countyList:"001", geoVar:"('B01001001','B01001002','B02001007')"},
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 	  dataType: 'json' 
 	})
 	.done(function(data){
@@ -49,6 +82,7 @@ $(function(){
 	console.log(data);
 	});
 
+<<<<<<< HEAD
 	console.log('hello world');
 	$.ajax({
 	  url: "http://localhost:3000/ACS2012_5YEAR/censusTracts",
@@ -135,14 +169,28 @@ $(function(){
 	  url: "http://localhost:3000/ACS2012_5YEAR/states_and_counties",
 	  type: "POST",
 	  data: { stateList:"('36','34')", countyList:"('001')", tractList:"", geoVar:"('B01001001')"},
+=======
+
+	console.log('hello world');
+	$.ajax({
+	  url: "http://localhost:3000/ACS2012_5YEAR/states_and_counties",
+	  type: "POST",
+	  data: { stateList:"('36','34')", countyList:"001", geoVar:"('B01001001')"},
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 	  dataType: 'json' 
 	})
 	.done(function(data){
 	console.log("States and counties")
 	console.log(data);
+<<<<<<< HEAD
 	});*/
 
 	/*$.ajax({
+=======
+	});
+
+	$.ajax({
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
 	  url: "http://localhost:3000/ACS2010_5YEAR/",
 	  type: "GET",
 	  data: { table_ID: "x"},
@@ -159,9 +207,17 @@ $(function(){
 	});
 	$('#variousStubs').on("change",function(e){
 		doQuery($(this).val())
+<<<<<<< HEAD
 	});*/
 
 })
 
 </script>
 </body>
+=======
+	});
+
+})
+
+</script>
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a

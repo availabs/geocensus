@@ -86,6 +86,7 @@ if states is passed
 select b01001001 from "acs2010_5yr".seq0010 as a
 join "acs2010_5yr".geoheader as b
 ON a.logrecno = b.logrecno and a.stusab = b.stusab
+<<<<<<< HEAD
 where b.sumlevel='050' and b.state = '36' and b.county = '001'
 
 
@@ -197,3 +198,6 @@ yo angular:controller stations
 create stations view stations.html
 set route to stations/:stationid
 List Station ID at page Header
+=======
+where b.sumlevel='050' and b.state = '36' and b.county = '001'
+>>>>>>> 6853a564a3669db5e472d6851e91efe2e348ae1a
