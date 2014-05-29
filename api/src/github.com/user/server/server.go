@@ -36,7 +36,7 @@ func main() {
 
   */
 
-  var tmpl = template.Must(template.ParseFiles("downloads/GeocensusAPI.html"))
+  var tmpl = template.Must(template.ParseFiles("downloads/GeocensusAPI.html","map.html"))
 
   m := martini.Classic()
   m.Use(cors.Allow(&cors.Options{
@@ -53,6 +53,14 @@ func main() {
 m.Get("/",func(res http.ResponseWriter,req *http.Request){
 
   if err := tmpl.ExecuteTemplate(res,"GeocensusAPI.html",nil); err != nil{
+    fmt.Println(res)
+    http.Error(res,err.Error(),http.StatusInternalServerError)
+  }
+
+})
+m.Get("/map.html",func(res http.ResponseWriter,req *http.Request){
+
+  if err := tmpl.ExecuteTemplate(res,"map.html",nil); err != nil{
     fmt.Println(res)
     http.Error(res,err.Error(),http.StatusInternalServerError)
   }
