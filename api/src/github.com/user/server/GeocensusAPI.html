@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>Geocensus API</h3>
+<hr>
+<p>This Geocensus project is designed so that anyone can get population density<br>
+information about a wide vareity of geocensus variable data(Total population,<br>
+population by age, sex, race, etc.) based on data from the years 2005-2010.</p>
+
+<h3>Map Interface</h3>
+<hr>
+<p>http://.../map.html<br>
+The client side of the Geocensus Api. It displays a map made with Leaflet<br>
+that a user can interact with and display population density data on three<br>
+different sumlevels: States, Counties, and Census Tracts. Working with States<br>
+and Counties displays all information for all states at once when selected.<br>
+Tract data however is very large and can only display information for one<br>
+state at a time.<br><br>
+
+Under the interactive map, there are four drop down menus. The first menu<br>
+displays the list of populations that you can query census data for.<br>
+The second drop down menu displays the sum levels you can select.<br>
+The third drop down menu is only displayed when the sumlevel<br>
+selected is tracts. This displays the list of states you may obtain tract<br>
+data for. The last drop down menu displays the subsets of the census data<br>
+to be queried, such as median age of males, females, or both.<br>
+The final button under the map, recolor, is used to highlight data on the<br>
+map.</p>
+
+<h3>Obtaining Census Variables</h3>
+<hr>
+<p>http://.../ACS2010_5YEAR
+This route is used to obtain the list of census variables a user may select.
+It takes no input. It's output is of the following form as a object array
+of key value pairs:
+</p>
+<div id="content" style="background-color:#EEEEEE">
+<pre>
+	[
+		{
+
+			//Table_ID:Geocensus category(Stub)
+			ID:"Stub",
+			B00001:"Unweighted Sample Count Of Population",
+			B00002:"Unweighted Sample Housing Units",
+			...
+
+		}
+	]
+
+
+</pre>
+</div>
+<p><br><br>The above is complished in the client code with the following<br>
+call to AJAX:<br>
+<div id="content" style="background-color:#EEEEEE">
+	<pre>
+$.ajax({
+    url: "http://localhost:3000/ACS2010_5YEAR/",
+    type: "GET",
+    data: { table_ID: "x"},
+    dataType: 'json' 
+  })
+ 	</pre>
+</div>
+<h3>Creating Subset Listing Of Census Variables</h3>
+<hr>
+<p>http://.../ACS2010_5YEAR<br>
+After the above Get request is performed, depending on what option the<br>
+client selects, a subset of the possible selections of geovariables is<br>
+created in the fourth drop down menu. This row takes as input the<br>
+Table_ID from the previous Get request. It's output is the list of<br>
+subset tuples in the final select column. The output data is formatted<br>
+as follows in an array of key value pairs:<br>
+</p>
+<div id="content" style="background-color:#EEEEEE">
+<pre>
+	[
+		{
+
+			//Table_ID:Geocensus subcategory
+			"B01001001 Total:",
+			"B01001002 Male:",
+			"B01001003 Under 5 years",
+			"B01001004 5 to 9 years",
+			...
+		}
+	]
+
+
+</pre>
+</div>
+<p>The above uses an ajax request similar to the previous one.</p><br>
+
+<h3>Topojson Format Of State Tracts</h3>
+<hr>
+<p>"http://.../states/:geoid/tracts"<br>
+While other parts of the Leaflet code use prebuilt objects to display<br>
+boundaries for States and Counties, the method used to obtain prebuilt<br>
+tracts is quite different because tracts are obtained one state at a time<br>
+for efficiency reasons. As such, this path takes in the state for which<br>
+the tracts are being obtained for and outputs an object suitable to be<br>
+converted into topojson format. The output is as follows:<br></p>
+<div id="content" style="background-color:#EEEEEE">
+<pre>
+	"{
+	  "type": "FeatureCollection",
+	  "features": 
+	[{"geometry":{"type":"MultiPolygon","coordinates":[[[[-86.556074,34.674245],[-86.555981,34.67491],[-86.555812,34.676024],[-86.555736,34.676407],
+	[-86.555169,34.677997],[-86.555089,34.67821],[-86.554674,34.679362],[-86.554246,34.680574],[-86.554195,34.680893],
+	[-86.554202,34.681468],[-86.5542,34.681857],[-86.554184,34.68192],[-86.554156,34.682035],...
+</pre>
+</div>
+<pre>The above is obtained with the slightly different ajax post request:
+	$.ajax({
+        url: "http://localhost:3000/states/36/tracts",
+        type: "POST",
+      data: { geoCen: "", state:""+state+""},
+      async: false
+    })
+</pre>
+<h3>Obtaining State Names</h3>
+<hr>
+<p>"http://.../ACS2010_5YEAR/states"<br>
+This path is used to get the full names of states and counties associated<br>
+in the database to display in the third column of the map page. This<br>
+list is only filled when the user tries to select county or tract data<br>
+to look up since that data for organization and clarity purposes. This<br>
+tract will take no input and returns the list of states and their<br>
+associated geoid's as an array of key value pairs:<br>
+</p>
+<div id="content" style="background-color:#EEEEEE">
+<pre>
+	"{
+		[
+			//State name:geoid
+			Alaska:"02",
+			Alabama:"01",
+			Arakansas:"05",
+			...
+		]
+
+	}"
+</pre>
+</div>
+<pre>This is done using the following ajax POST request:
+	$.ajax({
+      url: "http://localhost:3000/ACS2010_5YEAR/states",
+      type: "POST",
+      data: { stateList:"", countyList:"", geoVar:""},
+      dataType: 'json' 
+    })
+</pre>
+
+<h3> Obtaining Population Densities</h3>
+<hr>
+<p>http://.../ACS2012_5YEAR/Query<br>
+This pathname is where the actual population densities are<br>
+obtained, formated, and returned to be displayed. It takes<br>
+as input a state's geoid for tract look ups, the sum level,<br>
+and the census variable selected from the third select object<br>
+on map html and returns an array of key value pairs for each<br>
+state, tract, or county selected. The output is of the following<br>
+form:<br></p>
+<div id="content" style="background-color:#EEEEEE">
+<pre>
+	{
+		[
+		//Array of census variables
+		//"Geoid":# of geoid
+		{[
+
+			//Census variable:population
+			B000010001:64785
+
+		]}
+		"Geoid":02,
+		...
+		]
+	}
+</pre>
+</div>
+<pre>The ajax call used is as follows:
+	$.ajax({
+    url: "http://localhost:3000/ACS2012_5YEAR/Query",
+    type: "POST",
+    data: { stateList:""+state+"", countyList:""+$('#lookupType').val()+"", geoVar:"('"+cenVar+"')"},
+    dataType: 'json' ,
+    async: false
+  })
+</pre>
+</body>
+</html> 

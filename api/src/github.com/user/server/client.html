@@ -5,6 +5,7 @@
 <script >
 
 $(function(){
+
 	/*console.log('hello world');
 	$.ajax({
 	  url: "http://localhost:3000/states/36/tracts",
@@ -25,6 +26,14 @@ $.ajax({
     console.log(data)
     //output = data;
   });
+	$.ajax({
+	  url: "http://localhost:3000/states/36/tracts",
+	  type: "POST",
+	  data: { geoCen: "", state:"36", location: "New York" }
+	})
+	.done(function( data ) {
+	    $('body').append(data);
+
 
 
 })

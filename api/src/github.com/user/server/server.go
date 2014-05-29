@@ -25,6 +25,7 @@ import (
   "net/http"
   //"log"
   "fmt"
+
 )
 
 func main() {
@@ -34,7 +35,9 @@ func main() {
   Part of code used for setting up the framework and preventing cors restrictions
 
   */
+
   var tmpl = template.Must(template.ParseFiles("downloads/GeocensusAPI.html"))
+
   m := martini.Classic()
   m.Use(cors.Allow(&cors.Options{
     AllowOrigins:     []string{"http://*"},
@@ -43,6 +46,7 @@ func main() {
     ExposeHeaders:    []string{"Content-Length","content-type"},
     AllowCredentials: true,
   }))
+
 //m.Use(martini.Static("downloads"))
 //m.Get("/",martini.Static("index.html"))
 //fmt.Println(m)
@@ -79,6 +83,7 @@ m.Post("/states/:geoid/tracts",binding.Bind(serverAid.GeoCensusVar{}),serverAid.
 
 /*
 
+<<<<<<< HEAD
 The following Get request is used to get the list of searchable census data types for the client.
 This is only called once when map.html is first run.
 
@@ -91,6 +96,7 @@ m.Get("/ACS2010_5YEAR",serverAid.Acs20105year)
 
 */
 
+
 m.Post("/ACS2010_5YEAR/",binding.Bind(serverAid.ACSVar{}),serverAid.Acs20105yearTable_id)
 
 
@@ -100,12 +106,12 @@ m.Post("/ACS2010_5YEAR/states",binding.Bind(serverAid.GeoCensusVar2{}),serverAid
 m.Post("/ACS2012_5YEAR/Query",binding.Bind(serverAid.GeoCensusVar2{}),serverAid.Acs20105yearQuery)
 m.Post("/ACS2012_5YEAR/QuerySpecial/:filetype",binding.Bind(serverAid.GeoCensusVar2{}),serverAid.Acs20105yearQuerySpecial)
 
+
 /*
 
 Below line of code runs the server allowing GET and POST requests to be made.
 
 */
-
 m.Run()
 
 }

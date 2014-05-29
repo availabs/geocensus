@@ -49,6 +49,7 @@ path:hover {
      <option>-Select Sum Level</option>
      <!--<option value="040">States</option>
      <option value="050">Counties</option>
+
      <option value="140">Tracts</option>-->
   </select>
   <select id="stateList">
@@ -71,7 +72,9 @@ path:hover {
   //Create the map below
 
   var map = new L.Map("map", {center: [37.8, -96.9], zoom: 4})
+
       .addLayer(new L.TileLayer("http://{s}.tiles.mapbox.com/v3/am3081.h0po4e8k/{z}/{x}/{y}.png"));
+
 
   var svg = d3.select(map.getPanes().overlayPane).append("svg"),
       g = svg.append("g").attr("class", "leaflet-zoom-hide");
@@ -106,6 +109,7 @@ path:hover {
       //console.log('hello world');
   $.ajax({
       url: "http://localhost:3030/ACS2010_5YEAR/states",
+
       type: "POST",
       data: { stateList:"", countyList:"", geoVar:""},
       dataType: 'json' 
@@ -434,5 +438,4 @@ function largeQuery(reType){
   })
 
 }
-
 </script>
