@@ -560,7 +560,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	tracts :=[]map[string]string{}
 	for count := 0;count<len(stateSubStrArr);count++{
 		if TABLE.Tract != ""{
-			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+Table.Tract+"_tract WHERE geoid = '"+stateSubStrArr[count]+"'"
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.Tract+"_tract WHERE geoid = '"+stateSubStrArr[count]+"'"
 		} else if TABLE.Counties == "140"{
 		sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_tract"
 		} else if TABLE.Counties == "050"{
