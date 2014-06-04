@@ -397,11 +397,14 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
     	for si := 0; si < len(stateSubStrArr); si++ {
     	
     	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
+	seqStr := ""
     	if checkStr < 10 && errS == nil {
-    		geoVarMaps[iterator].SequenceNum = "0"+geoVarMaps[iterator].SequenceNum
-    	}
+    		seqStr = "0"+geoVarMaps[iterator].SequenceNum
+    	} else {
+	  seqStr = geoVarMaps[iterator].SequenceNum
+	}
     	//fmt.Println(geoVarMaps[iterator].SequenceNum)
-    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+geoVarMaps[iterator].SequenceNum+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
+    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
 		rows2, err3 := db.Query(sql_statement2)
 		if err3 != nil {
 			//log.Fatal("SQL error "+err3.Error())

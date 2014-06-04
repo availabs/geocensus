@@ -14,19 +14,35 @@ population by age, sex, race, etc.) based on data from the years 2005-2010.</p>
 The client side of the Geocensus Api. It displays a map made with Leaflet<br>
 that a user can interact with and display population density data on three<br>
 different sumlevels: States, Counties, and Census Tracts. Working with States<br>
-and Counties displays all information for all states at once when selected.<br>
-Tract data however is very large and can only display information for one<br>
-state at a time.<br><br>
+displays all information for all states at once when selected.Working with<br>
+County and Tract data is very large and as such you can only display information<br>
+for one county or state at a time.<br><br>
 
-Under the interactive map, there are four drop down menus. The first menu<br>
-displays the list of populations that you can query census data for.<br>
+Under the interactive map, there are six drop down menus. The first menu<br>
+displays the list of variables that you can query census data for.<br>
 The second drop down menu displays the sum levels you can select.<br>
-The third drop down menu is only displayed when the sumlevel<br>
-selected is tracts. This displays the list of states you may obtain tract<br>
-data for. The last drop down menu displays the subsets of the census data<br>
-to be queried, such as median age of males, females, or both.<br>
-The final button under the map, recolor, is used to highlight data on the<br>
-map.</p>
+The third drop down menu is used for selecting the state or county<br>
+you wish to obtain information for. If the sum level selected is states,<br>
+then the selected state only matters when performing large queries. The<br>
+fourth dropdown menu is where the subsets of the first dropdown menu are<br>
+stored. The fifth dropdown menu displays the current list of variables added<br>
+by the "Add Var" button. The final dropdown menu is used to check whether<br>
+the user wishes to create a shapefile or not.<br><br>
+Under the six dropdown menu options are four buttons. The first button,<br>
+"Add Var", adds the currently selected values in the second, third, and<br>
+fourth dropdown menus to an array in memory. Based on the first<br>
+state/county and sumlevel selected, any further variables added to the<br>
+array will always be for that state and sumlevel until "Clear Var List" is<br>
+pressed or the page is refreshed. This second "Clear Var List" button also<br>
+clears out the fifth dropdown menu so as to allow new queries to be ran on<br>
+a new set of variables. The third button, "Perform Large Query", does one<br>
+two things depending on the value in the sixth dropdown menu. If shapefile<br>
+is selected in the sixth dropdown menu, pressing this button will create a<br>
+zip file containing information added to the fifth dropdown menu. If<br>
+Geojson is selected, then the information from the fifth dropdown menu<br>
+will be displayed in the console. The last button, recolor, recolors the<br>
+map on the map page based on the currently selected items in the second,<br>
+third, and fourth dropdown menu.</p>
 
 <h3>Obtaining Census Variables</h3>
 <hr>
@@ -190,5 +206,26 @@ form:<br></p>
     async: false
   })
 </pre>
+<h3>Performing a large query</h3>
+<hr>
+<p>http://.../ACS2012_5YEAR/QuerySpecial/:filetype<br>
+This pathname is used to perform the large query on a given<br>
+data set and returns a string as a result. This string will<br>
+will return in jsonformat and will either be a success message<br>
+or display an object array containing the desired values.<br>
+The given filetype is used to determine whether to create a<br>
+zip file or not. This path takes as input the array of<br>
+geovariables, the sum level, and the selected state, county,<br>
+or tract. The ajax call made to the path is as follows:<br><br>
+
+<pre>$.ajax({
+    url: "http://localhost:3030/ACS2012_5YEAR/QuerySpecial/"+reType+"",
+    type: "POST",
+    data: { stateList:selectedStCtTr[0], countyList:selectedSumLevel[0], geoVar:variableArray},
+    dataType: 'json' 
+  })
+</pre>
+</p>
+
 </body>
 </html> 
