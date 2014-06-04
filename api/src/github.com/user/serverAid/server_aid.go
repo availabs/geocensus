@@ -244,11 +244,14 @@ func Acs20105yearQuery(params martini.Params, TABLE GeoCensusVar2) []byte{
     	for si := 0; si < len(stateSubStrArr); si++ {
     	
     	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
+    	seqStr := ""
     	if checkStr < 10 && errS == nil {
-    		geoVarMaps[iterator].SequenceNum = "0"+geoVarMaps[iterator].SequenceNum
+    		seqStr = "0"+geoVarMaps[iterator].SequenceNum
+    	} else{
+    		seqStr = geoVarMaps[iterator].SequenceNum
     	}
     	//fmt.Println(geoVarMaps[iterator].SequenceNum)
-    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+" from \"acs2010_5yr\".seq00"+geoVarMaps[iterator].SequenceNum+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
+    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+" from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
 		rows2, err3 := db.Query(sql_statement2)
 		if err3 != nil {
 			//log.Fatal("SQL error "+err3.Error())
@@ -364,19 +367,21 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		db, err := sql.Open("postgres", "host=lor.availabs.org password=transit user=postgres dbname=geocensus sslmode=require")
 		if err != nil {
 
-			return ""
+			return "A"
 		}
 		//parsedVar := "('B01003_001E,B12006_001E,B12006_005E,B12006_010E,B12006_016E,B12006_021E,B12006_027E,B12006_032E,B12006_038E,B12006_043E,B12006_049E,B12006_054E,B12006_006E,B12006_011E,B12006_017E,B12006_022E,B12006_028E,B12006_033E,B12006_039E,B12006_044E,B12006_050E,B12006_055E,B08301_001E,B08301_002E,B08301_010E,B08301_016E,B08301_017E,B08301_018E,B08301_019E,B08301_020E,B08301_021E,B08301_011E,B08301_013E,B08301_014E,B08126_001E,B08126_002E,B08126_003E,B08126_004E,B08126_005E,B08126_006E,B08126_007E,B08126_008E,B08126_009E,B08126_010E,B08126_011E,B08126_012E,B08126_013E,B08126_014E,B08126_015E,B19001_001E,B19001_002E,B19001_003E,B19001_004E,B19001_005E,B19001_006E,B19001_007E,B19001_008E,B19001_009E,B19001_010E,B19001_011E,B19001_012E,B19001_013E,B19001_014E,B19001_015E,B19001_016E,B19001_017E,B19013_001E,B17001_002E,B14003_003E,B14003_012E,B14003_031E,B14003_040E,B23006_002E,B23006_009E,B23006_016E,B23006_023E,B05006_001E,B06007_005E,B06007_008E,B01001_002E,B01001_026E,B01001_004E,B01001_005E,B01001_006E,B01001_007E,B01001_008E,B01001_009E,B01001_010E,B01001_011E,B01001_012E,B01001_013E,B01001_014E,B01001_015E,B01001_016E,B01001_017E,B01001_018E,B01001_019E,B01001_020E,B01001_021E,B01001_022E,B01001_023E,B01001_024E,B01001_025E,B01001_027E,B01001_028E,B01001_029E,B01001_030E,B01001_031E,B01001_032E,B01001_033E,B01001_034E,B01001_035E,B01001_036E,B01001_037E,B01001_038E,B01001_039E,B01001_040E,B01001_041E,B01001_042E,B01001_043E,B01001_044E,B01001_045E,B01001_046E,B01001_047E,B01001_048E,B01001_049E,B02001_002E,B02001_003E,B02001_004E,B02001_005E,B02001_006E,B02001_007E,B02001_008E,B25002_001E,B25002_002E,B25002_003E,B25024_002E,B25024_003E,B25024_004E,B25024_005E,B25024_006E,B25024_007E,B25024_008E,B25024_009E,B25024_010E,B25024_011E,B25003_002E,B25003_003E,B08014_002E,B08014_003E,B08014_004E,B08014_005E,B08014_006E,B08014_007E,B08132_002E,B08132_003E,B08132_004E,B08132_005E,B08132_006E,B08132_007E,B08132_008E,B08132_009E,B08132_010E,B08132_011E,B08132_012E,B08132_013E,B08132_014E,B08132_015E,B08132_046E,B08132_047E,B08132_048E,B08132_049E,B08132_050E,B08132_051E,B08132_052E,B08132_053E,B08132_054E,B08132_055E,B08132_056E,B08132_057E,B08132_058E,B08132_059E,B08132_060E,B08133_001E,B08133_002E,B08133_003E,B08133_004E,B08133_005E,B08133_006E,B08133_007E,B08133_008E,B08133_009E,B08133_010E,B08133_011E,B08133_012E,B08133_013E,B08133_014E,B08133_015E,B08122_001E,B08122_002E,B08122_003E,B08122_004E,B08122_005E,B08122_006E,B08122_007E,B08122_008E,B08122_009E,B08122_010E,B08122_011E,B08122_012E,B08122_013E,B08122_014E,B08122_015E,B08122_016E,B08122_017E,B08122_018E,B08122_019E,B08122_020E,B08122_021E,B08122_022E,B08122_023E,B08122_024E,B08122_025E,B08122_026E,B08122_027E,B08122_028E,B08136_001E,B08136_002E,B08136_003E,B08136_004E,B08136_005E,B08136_006E,B08136_007E,B08136_008E,B08136_009E,B08136_010E,B08136_011E,B08136_012E,B08126_001E,B08126_002E,B08126_003E,B08126_004E,B08126_005E,B08126_006E,B08126_007E,B08126_008E,B08126_009E,B08126_010E,B08126_011E,B08126_012E,B08126_013E,B08126_014E,B08126_015E,B08126_046E,B08126_047E,B08126_048E,B08126_049E,B08126_050E,B08126_051E,B08126_052E,B08126_053E,B08126_054E,B08126_055E,B08126_056E,B08126_057E,B08126_058E,B08126_059E,B08126_060E,B08519_001E,B08519_002E,B08519_003E,B08519_004E,B08519_005E,B08519_006E,B08519_007E,B08519_008E,B08519_009E,B08519_028E,B08519_029E,B08519_030E,B08519_031E,B08519_032E,B08519_033E,B08519_034E,B08519_035E,B08519_036')"
 		parsedVar := strings.Replace(TABLE.GeoCenVar3[0],",'GAMMA","",-1)
 		sql_statement := "SELECT unique_id, sequence_number FROM \"public\".table_shell JOIN \"public\".data_dictionary ON \"public\".table_shell.table_id = \"public\".data_dictionary.table_id AND \"public\".table_shell.var_order = \"public\".data_dictionary.line_number WHERE \"public\".table_shell.unique_id in "+parsedVar
+		//fmt.Println(sql_statement)
 		rows, err := db.Query(sql_statement)
 		if err != nil {
 			fmt.Println(sql_statement)
-			return ""
+			return "B"
 		}
 		var rowString string
 		var geoVarSQL string
 		var geoVarMaps []SeqAndGeoVar
+		var stateSubStrArr []string
 		arrayPos := 0
 		var hashMaps = make(map[string]int)
 		var outputArray []GeoCensusOutput
@@ -384,7 +389,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		for rows.Next(){
 			if err := rows.Scan(&geoVarSQL,&rowString); err != nil {
 
-        		return ""
+        		return "C"
             }
         var geoVarMap SeqAndGeoVar
         geoVarMap.GeoVar = geoVarSQL
@@ -393,110 +398,118 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
         seqNumCount++
     	}
     	for iterator := 0;iterator<seqNumCount;iterator++{
-    	stateSubStrArr := SubStringArray(TABLE.States)
-    	for si := 0; si < len(stateSubStrArr); si++ {
-    	
-    	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
-    	if checkStr < 10 && errS == nil {
-    		geoVarMaps[iterator].SequenceNum = "0"+geoVarMaps[iterator].SequenceNum
-    	}
-    	//fmt.Println(geoVarMaps[iterator].SequenceNum)
-    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+geoVarMaps[iterator].SequenceNum+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
-		rows2, err3 := db.Query(sql_statement2)
-		if err3 != nil {
-			//log.Fatal("SQL error "+err3.Error())
-			return ""
-		}
-		var rowString4 sql.NullString
-		var rowString5 sql.NullString
-		var rowString6 sql.NullString
-		rowString2 := ""
-		rowString3 := ""
-		rowString7 := ""
-		newItem := 1
-		rowString2 = "0"
-		for rows2.Next(){
-			var temp GeoCensusOutput
-			if err := rows2.Scan(&rowString5,&rowString4,&rowString6); err != nil {
-	           	    return ""
-	       	    }
-	       	    if rowString4.Valid{
-	       	    rowString2 = rowString4.String
-	       	    rowString2 = strings.Replace(rowString2, ".", "", -1)
-	       	    rowString2 = strings.Replace(rowString2, "e+06", "", -1)
-	       	    rowString2 = strings.Replace(rowString2, "e+07", "", -1)
-	       		}
-	       		if rowString5.Valid{
-	       			rowString3 = rowString5.String
-	       	    	rowString3 = strings.Replace(rowString3,TABLE.Counties+"00US","",-1)
-	       		}
-	       		if rowString6.Valid{
-	       			rowString7 = rowString6.String
-	       		}
+	    	stateSubStrArr = SubStringArray(TABLE.States)
+	    	//fmt.Println(stateSubStrArr)
+	    	for si := 0; si < len(stateSubStrArr); si++ {
+	    	
+	    	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
+	    	seqStr := ""
+	    	if checkStr < 10 && errS == nil {
+	    		seqStr = "0"+geoVarMaps[iterator].SequenceNum
+	    	} else{
+	    		seqStr = geoVarMaps[iterator].SequenceNum
+	    	}
+	    	//fmt.Println(geoVarMaps[iterator].SequenceNum)
+	    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
+			rows2, err3 := db.Query(sql_statement2)
+			if err3 != nil {
+				//log.Fatal("SQL error "+err3.Error())
+				fmt.Println(sql_statement2)
+				return "D"
+			}
+			var rowString4 sql.NullString
+			var rowString5 sql.NullString
+			var rowString6 sql.NullString
+			rowString2 := ""
+			rowString3 := ""
+			rowString7 := ""
+			newItem := 1
+			rowString2 = "0"
+			counting := 0
+			for rows2.Next(){
+				fmt.Println(counting)
+				counting++
+				var temp GeoCensusOutput
+				if err := rows2.Scan(&rowString5,&rowString4,&rowString6); err != nil {
+		           	    return "E"
+		       	    }
+		       	    if rowString4.Valid{
+		       	    rowString2 = rowString4.String
+		       	    rowString2 = strings.Replace(rowString2, ".", "", -1)
+		       	    rowString2 = strings.Replace(rowString2, "e+06", "", -1)
+		       	    rowString2 = strings.Replace(rowString2, "e+07", "", -1)
+		       		}
+		       		if rowString5.Valid{
+		       			rowString3 = rowString5.String
+		       	    	rowString3 = strings.Replace(rowString3,TABLE.Counties+"00US","",-1)
+		       		}
+		       		if rowString6.Valid{
+		       			rowString7 = rowString6.String
+		       		}
 
 
-//////Hash function goes here!
+	//////Hash function goes here!
 
 
-	       	//First element in the array
-	       	    if arrayPos == 0 {
-	       	    	temp.Geoid = rowString3
-	       	    	temp.Tract = rowString7
-	       	        var tempGeoid string = string(geoVarMaps[iterator].GeoVar)
-	       	 	  	tempValue, err := strconv.Atoi(rowString2)
-	       	 	  	if err != nil {
-        				tempValue = 0
-    				}
-	       	 	  	tempMap := map[string]int{
-	       	 	  		tempGeoid:tempValue,
-	       	 	  	}
-	       	    	temp.CensusVariables = append(temp.CensusVariables,tempMap)
-	       	    	outputArray = append(outputArray,temp)
-	       	    	arrayPos++
-	       	    	hashMaps[rowString3] = arrayPos
-	       	    } else {
-	    //continuous element in the array
-	       	    	newItem = 1
-	       	    	if hashMaps[rowString3] > 0{
-	       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
-	       	    			tempValue, err := strconv.Atoi(rowString2)
-			       	 	  	if err != nil {
-		        				tempValue = 0
-		        			}
+		       	//First element in the array
+		       	    if arrayPos == 0 {
+		       	    	temp.Geoid = rowString3
+		       	    	temp.Tract = rowString7
+		       	        var tempGeoid string = string(geoVarMaps[iterator].GeoVar)
+		       	 	  	tempValue, err := strconv.Atoi(rowString2)
+		       	 	  	if err != nil {
+	        				tempValue = 0
+	    				}
+		       	 	  	tempMap := map[string]int{
+		       	 	  		tempGeoid:tempValue,
+		       	 	  	}
+		       	    	temp.CensusVariables = append(temp.CensusVariables,tempMap)
+		       	    	outputArray = append(outputArray,temp)
+		       	    	arrayPos++
+		       	    	hashMaps[rowString3] = arrayPos
+		       	    } else {
+		    //continuous element in the array
+		       	    	newItem = 1
+		       	    	if hashMaps[rowString3] > 0{
+		       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
+		       	    			tempValue, err := strconv.Atoi(rowString2)
+				       	 	  	if err != nil {
+			        				tempValue = 0
+			        			}
 
-	       	    			tempMap := map[string]int{
-	       	 	  				tempGeoid:tempValue,
-	       	 	  			}
-	       	    			outputArray[hashMaps[rowString3]-1].CensusVariables = append(outputArray[hashMaps[rowString3]-1].CensusVariables,tempMap)
-	       	    			newItem = 0
-	       	    		}
-	   
-	       //Add new element to the array	    	
-	       	    	if newItem == 1{
-	       	    			temp.Geoid = rowString3
-	       	    			temp.Tract = rowString7
-	       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
-	       	    			tempValue, err := strconv.Atoi(rowString2)
-	       	       	 	  	if err != nil {
-		        				tempValue = 0
-    						}
+		       	    			tempMap := map[string]int{
+		       	 	  				tempGeoid:tempValue,
+		       	 	  			}
+		       	    			outputArray[hashMaps[rowString3]-1].CensusVariables = append(outputArray[hashMaps[rowString3]-1].CensusVariables,tempMap)
+		       	    			newItem = 0
+		       	    		}
+		   
+		       //Add new element to the array	    	
+		       	    	if newItem == 1{
+		       	    			temp.Geoid = rowString3
+		       	    			temp.Tract = rowString7
+		       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
+		       	    			tempValue, err := strconv.Atoi(rowString2)
+		       	       	 	  	if err != nil {
+			        				tempValue = 0
+	    						}
 
-	       	    			tempMap := map[string]int{
-	       	 	  				tempGeoid:tempValue,
-	       	 	  			}
-	       	    			temp.CensusVariables = append(temp.CensusVariables,tempMap)
-	       	    			outputArray = append(outputArray,temp)
-	       	    			arrayPos++
-	       	    			hashMaps[rowString3] = arrayPos
-	       	    		}
-	       	    	
-	       	    }
-///////Hash function stops here
+		       	    			tempMap := map[string]int{
+		       	 	  				tempGeoid:tempValue,
+		       	 	  			}
+		       	    			temp.CensusVariables = append(temp.CensusVariables,tempMap)
+		       	    			outputArray = append(outputArray,temp)
+		       	    			arrayPos++
+		       	    			hashMaps[rowString3] = arrayPos
+		       	    		}
+		       	    	
+		       	    }
+	///////Hash function stops here
 
 
-	       	}
-	       }
-}
+		       	}
+		       }
+	}
 	/*b, err3 := json.Marshal(outputArray)
     if err3 != nil {
 		//log.Fatal("Marshal error")
@@ -511,17 +524,25 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	parsedVar2 = strings.Replace(parsedVar2,"'","",-1)
 	parsedArr := strings.SplitAfter(parsedVar2,",")
 	appendString := ""
-	for counter := 0;counter<len(parsedArr);counter++{
-		//fmt.Println(parsedArr[counter])
-		//fmt.Println(strings.Replace(parsedArr[counter],",","",-1))
-		//fmt.Println(strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)]))
-		if counter + 1 !=  len(parsedArr){
-			appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])+","
-		} else{
-			appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])
+	var apprendStrArr []string
+	//fmt.Println(outputArray)
+	for count := 0;count<len(stateSubStrArr);count++{
+		for counter := 0;counter<len(parsedArr);counter++{
+			//fmt.Println(parsedArr[counter])
+			//fmt.Println(strings.Replace(parsedArr[counter],",","",-1))
+			//fmt.Println(strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)]))
+			if counter + 1 !=  len(parsedArr){
+				appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])+","
+			} else{
+				appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])
+			}
+			
 		}
+		apprendStrArr = append(apprendStrArr,appendString)
+		appendString = ""
+		
 	}
-	//fmt.Println(appendString)
+	fmt.Println(apprendStrArr)
 	//fmt.Println(outputArray[0].CensusVariables[0][parsedVar])
 	//fmt.Println(len(outputArray[0].CensusVariables))
 	
@@ -535,79 +556,86 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	counties or states
 
 	*/
-	if TABLE.Counties == "140"{
-	sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_tract"
-	} else if TABLE.Counties == "050"{
-		sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_us_county WHERE geoid = '"+TABLE.States+"'"
-	} else {
-		sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,name,geoid FROM tl_2013_us_state WHERE geoid = '"+TABLE.States+"'"
-	}
-		
-	rows3, err := db.Query(sql_statement)
-	if err != nil {
-		return err.Error()
-	}	
-
-	var namelsad string
-	var geom string
-	var geoid string
 	tracts :=[]map[string]string{}
-	for rows3.Next() {
-        	if err := rows3.Scan(&geom, &namelsad, &geoid); err != nil {
-            	return err.Error()
-        	}
-        	tract := map[string]string{
-            	"geometry": geom ,
-            	"properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\","+appendString+"}",
-            	"type":"Feature",
-            }
-        	tracts = append(tracts, tract)
-        }
-        c, err := json.Marshal(tracts)
-        d := strings.Replace(string(c), "\\","",-1)
-        d = strings.Replace(d, "properties\":\"", "properties\":", -1)
-		d = strings.Replace(d, "\",\"geometry", ",\"geometry", -1)
-		d = strings.Replace(d, "geometry\":\"{", "geometry\":{", -1)
-		d = strings.Replace(d, "\",\"type", ",\"type", -1)
-		d = strings.Replace(d,"]]]]}\",\"properties\":{\"","]]]]},\"properties\":{\"",-1)
-        e := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+d+"}"
-        if params["filetype"] == "shape" {													//shapefile requested
-	        filename := "downloads/geography.geojson"
-	 
-		    f, err5 := os.Create(filename)
-		    if err5 != nil {
-		        fmt.Println(err5)
-		    }
-		    n, err6 := io.WriteString(f, e)
-		    if err6 != nil {
-		        fmt.Println(n, err6)
-		    }
-
-		    cmd := exec.Command("ogr2ogr","-F","ESRI Shapefile","output.shp", filename, "OGRGeoJSON") //First arg is command. Later args are arguments to be given. Returns cmd struct
-
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-			    fmt.Println(fmt.Sprint(err) + ": " + string(output))
-			    return "A"
-			}
-			cmd2 := exec.Command("zip","downloads/outPut.zip","output.dbf","output.prj","output.shp","output.shx")
-			output2, err2 := cmd2.CombinedOutput()
-			if err2 != nil {
-				fmt.Println(fmt.Sprint(err2) + ": " + string(output2))
-				return "B"
-			}
-			cmd2 = exec.Command("rm","output.dbf","output.prj","output.shp","output.shx")
-			output, err2 = cmd2.CombinedOutput()
-			if err2 != nil {
-				fmt.Println(fmt.Sprint(err2) + ": " + string(output))
-				return "C"
-			}
-			f.Close()
-			return "{\"stuff\":\"Shapefile Requested\"}"
+	for count := 0;count<len(stateSubStrArr);count++{
+		if TABLE.Tract != ""{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+Table.Tract+"_tract WHERE geoid = '"+stateSubStrArr[count]+"'"
+		} else if TABLE.Counties == "140"{
+		sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_tract"
+		} else if TABLE.Counties == "050"{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_us_county WHERE geoid = '"+TABLE.States+"'"
+		} else {
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,name,geoid FROM tl_2013_us_state WHERE geoid = '"+TABLE.States+"'"
 		}
+		fmt.Println(sql_statement)	
+		rows3, err := db.Query(sql_statement)
+		if err != nil {
+			fmt.Println(sql_statement)
+			return "F "+err.Error()
+		}	
+
+		var namelsad string
+		var geom string
+		var geoid string
+
+		for rows3.Next() {
+	        	if err := rows3.Scan(&geom, &namelsad, &geoid); err != nil {
+	            	return "G"+err.Error()
+	        	}
+	        	tract := map[string]string{
+	            	"geometry": geom ,
+	            	"properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\","+apprendStrArr[count]+"}",
+	            	"type":"Feature",
+	            }
+	        	tracts = append(tracts, tract)
+	        }
+	    }
+	        c, err := json.Marshal(tracts)
+	        d := strings.Replace(string(c), "\\","",-1)
+	        d = strings.Replace(d, "properties\":\"", "properties\":", -1)
+			d = strings.Replace(d, "\",\"geometry", ",\"geometry", -1)
+			d = strings.Replace(d, "geometry\":\"{", "geometry\":{", -1)
+			d = strings.Replace(d, "\",\"type", ",\"type", -1)
+			d = strings.Replace(d,"]]]]}\",\"properties\":{\"","]]]]},\"properties\":{\"",-1)
+	        e := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+d+"}"
+	        if params["filetype"] == "shape" || params["filetype"] == "34"{													//shapefile requested
+		        filename := "downloads/geography.geojson"
+		 
+			    f, err5 := os.Create(filename)
+			    if err5 != nil {
+			        fmt.Println(err5)
+			    }
+			    n, err6 := io.WriteString(f, e)
+			    if err6 != nil {
+			        fmt.Println(n, err6)
+			    }
+
+			    cmd := exec.Command("ogr2ogr","-F","ESRI Shapefile","output.shp", filename, "OGRGeoJSON") //First arg is command. Later args are arguments to be given. Returns cmd struct
+
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+				    fmt.Println(fmt.Sprint(err) + ": " + string(output))
+				    return "A"
+				}
+				cmd2 := exec.Command("zip","downloads/outPut.zip","output.dbf","output.prj","output.shp","output.shx")
+				output2, err2 := cmd2.CombinedOutput()
+				if err2 != nil {
+					fmt.Println(fmt.Sprint(err2) + ": " + string(output2))
+					return "B"
+				}
+				cmd2 = exec.Command("rm","output.dbf","output.prj","output.shp","output.shx")
+				output, err2 = cmd2.CombinedOutput()
+				if err2 != nil {
+					fmt.Println(fmt.Sprint(err2) + ": " + string(output))
+					return "C"
+				}
+				f.Close()
+				return "{\"stuff\":\"Shapefile Requested\"}"
+			}
+		
 		return e
 	
 	}
-return ""
+return "F"
 
 }
