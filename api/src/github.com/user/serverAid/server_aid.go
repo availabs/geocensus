@@ -510,6 +510,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		       	}
 		       }
 	}
+
 	/*b, err3 := json.Marshal(outputArray)
     if err3 != nil {
 		//log.Fatal("Marshal error")

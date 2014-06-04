@@ -92,7 +92,7 @@ path:hover {
     if($(this).val() === "050"){
     $("#stateList").empty();
     $.ajax({
-      url: "http://localhost:3030/ACS2010_5YEAR/states",
+      url: "http://lor.availabs.org:3030/ACS2010_5YEAR/states",
       type: "POST",
       data: { stateList:"050", countyList:"", geoVar:""},
       dataType: 'json' 
@@ -108,7 +108,7 @@ path:hover {
       $("#stateList").empty();
       //console.log('hello world');
   $.ajax({
-      url: "http://localhost:3030/ACS2010_5YEAR/states",
+      url: "http://lor.availabs.org:3030/ACS2010_5YEAR/states",
 
       type: "POST",
       data: { stateList:"", countyList:"", geoVar:""},
@@ -236,7 +236,7 @@ function getVariable(state,cenVar){
   //console.log(cenVar+" ('B01001001') "+$('#lookupType').val())  
   var output = [];
   $.ajax({
-    url: "http://localhost:3030/ACS2012_5YEAR/Query",
+    url: "http://lor.availabs.org:3030/ACS2012_5YEAR/Query",
     type: "POST",
     data: { stateList:""+state+"", countyList:""+$('#lookupType').val()+"", geoVar:"('"+cenVar+"')"},
     dataType: 'json' ,
@@ -251,7 +251,7 @@ function getVariable(state,cenVar){
 function tractOfState(state,c){
   var collection;
 $.ajax({
-        url: "http://localhost:3030/states/36/tracts",
+        url: "http://lor.availabs.org:3030/states/36/tracts",
         type: "POST",
       data: { geoCen:""+c+"", state:""+state+""},
       async: false
@@ -267,7 +267,7 @@ function doQuery(x)
 {
   $("#selectVar").empty();
   $.ajax({
-    url: "http://localhost:3030/ACS2010_5YEAR/",
+    url: "http://lor.availabs.org:3030/ACS2010_5YEAR/",
     type: "POST",
     data: { table_ID: "('"+x+"')"},
     dataType: 'json' 
@@ -285,7 +285,7 @@ function doQuery(x)
 }
 $(function(){
 $.ajax({
-    url: "http://localhost:3030/ACS2010_5YEAR/",
+    url: "http://lor.availabs.org:3030/ACS2010_5YEAR/",
     type: "GET",
     data: { table_ID: "x"},
     dataType: 'json' 
@@ -378,7 +378,7 @@ function largeQuery(reType){
   
  
   $.ajax({
-    url: "http://localhost:3030/ACS2012_5YEAR/QuerySpecial/"+reType+"",
+    url: "http://lor.availabs.org:3030/ACS2012_5YEAR/QuerySpecial/"+reType+"",
     type: "POST",
     data: { stateList:selectedStCtTr[0], countyList:selectedSumLevel[0], geoVar:variableArray},
     dataType: 'json' 
@@ -411,14 +411,14 @@ function largeQuery(reType){
     //console.log('cendata:',data)
     //Use jquery to add another button that uses download as an id and call the function
     if(data["stuff"] === "Shapefile Requested" )
-    $('#buttons').append("<a href=\"http://localhost:3030/downloads\" >Download</a>")
+    $('#buttons').append("<a href=\"http://lor.availabs.org:3030/downloads\" >Download</a>")
     //downloadCSV(current_collection,"exported_geography.geojson",'#download')
   
   //});
 
   function getCensusTracts(cenData,callback){
     $.ajax({
-       url: "http://localhost:3030/states/36/tracts",
+       url: "http://lor.availabs.org:3030/states/36/tracts",
            type: "POST",
            data: { geoCen:selectedSumLevel[0], state:selectedStCtTr[0], data:cenData}
       }).done(function(data){

@@ -10,7 +10,7 @@ Server part of Geocensus project. Authored by Evan Friedkin with help from Alex 
 /*List of imported go libraries
 
   "github.com/codegangsta/martini"                            Frame work used for server actions
-  "github.com/martini-contrib2/cors"                           Part of martini framework. Used to handle cors requests
+  "github.com/martini-contrib/cors"                           Part of martini framework. Used to handle cors requests
   "github.com/codegangsta/martini-contrib/binding"            Part of martini framework. Used to bind and pass variables from client to server
   "github.com/user/serverAid"                                 Part of server code, authored by Evan Friedkin with help from Alex Muro
 
@@ -18,7 +18,7 @@ Server part of Geocensus project. Authored by Evan Friedkin with help from Alex 
 import (
 
 	"github.com/codegangsta/martini"
-	"github.com/martini-contrib2/cors"
+	"github.com/martini-contrib/cors"
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/user/serverAid"
   "text/template"
