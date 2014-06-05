@@ -73,7 +73,7 @@ call to AJAX:<br>
 <div id="content" style="background-color:#EEEEEE">
 	<pre>
 $.ajax({
-    url: "http://localhost:3000/ACS2010_5YEAR/",
+    url: "http://.../ACS2010_5YEAR/",
     type: "GET",
     data: { table_ID: "x"},
     dataType: 'json' 
@@ -130,7 +130,7 @@ converted into topojson format. The output is as follows:<br></p>
 </div>
 <pre>The above is obtained with the slightly different ajax post request:
 	$.ajax({
-        url: "http://localhost:3000/states/36/tracts",
+        url: "http://.../states/36/tracts",
         type: "POST",
       data: { geoCen: "", state:""+state+""},
       async: false
@@ -162,7 +162,7 @@ associated geoid's as an array of key value pairs:<br>
 </div>
 <pre>This is done using the following ajax POST request:
 	$.ajax({
-      url: "http://localhost:3000/ACS2010_5YEAR/states",
+      url: "http://.../ACS2010_5YEAR/states",
       type: "POST",
       data: { stateList:"", countyList:"", geoVar:""},
       dataType: 'json' 
@@ -199,14 +199,14 @@ form:<br></p>
 </div>
 <pre>The ajax call used is as follows:
 	$.ajax({
-    url: "http://localhost:3000/ACS2012_5YEAR/Query",
+    url: "http://.../ACS2012_5YEAR/Query",
     type: "POST",
     data: { stateList:""+state+"", countyList:""+$('#lookupType').val()+"", geoVar:"('"+cenVar+"')"},
     dataType: 'json' ,
     async: false
   })
 </pre>
-<h3>Performing a large query</h3>
+<h3>Performing a large query or getting information for a specific set of tracts/counties</h3>
 <hr>
 <p>http://.../ACS2012_5YEAR/QuerySpecial/:filetype<br>
 This pathname is used to perform the large query on a given<br>
@@ -216,15 +216,83 @@ or display an object array containing the desired values.<br>
 The given filetype is used to determine whether to create a<br>
 zip file or not. This path takes as input the array of<br>
 geovariables, the sum level, and the selected state, county,<br>
-or tract. The ajax call made to the path is as follows:<br><br>
+or tract.<br>
+The ajax call made to the path is as follows in map.html:<br><br>
 
 <pre>$.ajax({
-    url: "http://localhost:3030/ACS2012_5YEAR/QuerySpecial/"+reType+"",
+    url: "http://.../ACS2012_5YEAR/QuerySpecial/"+reType+"",
     type: "POST",
     data: { stateList:selectedStCtTr[0], countyList:selectedSumLevel[0], geoVar:variableArray},
     dataType: 'json' 
   })
 </pre>
+<br>
+The functionality to search for a subset of tracts or more than<br>
+one county is currently not included in map.html. The<br>
+functionality to search for such information does still exist, however<br>
+the process to do so is very slow, ranging from 3 to 10 minutes<br>
+depending on just how much data the user is querying for.<br>
+In order to query for such data at the moment, the user must write<br>
+their own ajax call(or something similar) that can meet the following<br>
+form requirements:<br><br>
+<pre>
+	$.ajax({
+		    url: "http://.../ACS2012_5YEAR/QuerySpecial/(shape or geojson)",
+		    type: "POST",
+		    data: { stateList:tract/countyString, countyList:sumlevel, tractList:emptystring,county,notemptystring, state:state, geoVar:variableString},
+		})
+</pre>
+<br>
+At the end of the url, using the parameter "shape" will create a<br>
+a downloadable file at the servers regular download url. Using<br>
+anything other than shape will cause a geojson object to be<br>
+printed out too the console. So if you wish to create a downloadable<br>
+zip file use the following url in your ajax call:<br>
+http://.../ACS2012_5YEAR/QuerySpecial/shape<br>
+otherwise any other parameter such as:<br>
+http://.../ACS2012_5YEAR/QuerySpecial/geojson<br>
+will result in a geojson file being output to the console of your<br>
+web browser.<br><br>
+The next thing the user will need to do is create the lists of <br>
+geoid's, variables, the sumlevel, and type of multiquery.<br>
+The parameter stateList is used to hold a string containing all<br>
+geoid's to be search for. These geoid's must all be of the same<br>
+sumlevel(county or tract). The format of the string of geoid's<br>
+must look something like:<br>
+stateList:"('34021004501'),('34021004000'),('34021004502')"<br>
+Where geoid is the geoid of some tract or county.<br>
+The countyList parameter must contain the sumlevel you are working<br>
+with as a string. So something like: countyList:"050".<br>
+The parameter tractList must be either tract, county, or bg<br>
+you are obtaining data from. Using tract indicates you are looking<br>
+up a set of tracts for one state. The value bg indicates you are looking<br>
+up blockgroups for a specific tract. The value county<br>
+indicates you are looking up a subset of counties. 
+As such, using something like tractList:"tract" will get you a subset of<br>
+tracts. The value state is simply used to represent the state that you<br>
+wish to get a subset of tracts or block groups from. By using the<br>
+state fips code, you can pass something like state:"34" and obtain a<br>
+subset of tracts and block groups for the state New Jersey. The geoVar<br>
+parameter is used to pass a string of geovariables the user is searching<br>
+for. They must be passed as a string of the following form:<br>
+"('B08301011','B08014002',GAMMA)"<br>
+While the ",GAMMA" isn't 100% necessary, it is what the sever uses as a<br>
+prebuilt stopping point for looking up variables if it helps the user<br>
+in trying to make an automated list of variables with a loop of some kind.<br>
+This method of stopping is what the map.html code uses as it's stopping point.<br>
+<br>
+When the above is all put together, the final ajax call made should look<br>
+something like:<br>
+<pre>
+	$.ajax({
+		    url: "http://.../ACS2012_5YEAR/QuerySpecial/geojson",
+		    type: "POST",
+		    data: { stateList:"('34021004501'),('34021004000'),('34021004502')", countyList:"140", tractList:"tract", state:"34",geoVar:"('B08301011','B08014002')"},
+		})
+</pre>
+<br>
+If the user wishes to look up a subset of tracts in New Jersey and have<br>
+the result output to the console.
 </p>
 
 </body>

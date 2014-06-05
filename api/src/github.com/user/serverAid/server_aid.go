@@ -31,6 +31,7 @@ type GeoCensusVar2 struct{
 	Counties		string 	`form:"countyList" json:"counties"`
 	Tract 			string 	`form:"tractList" json:tract"`
 	GeoCenVar3[]	string 	`form:"geoVar" json:"GeoVariable"`
+	StateFips		string  `form:"state" json:"states"`
 }
 
 type GeoCensusOutput struct {
@@ -399,7 +400,6 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
     	}
     	for iterator := 0;iterator<seqNumCount;iterator++{
 	    	stateSubStrArr = SubStringArray(TABLE.States)
-	    	//fmt.Println(stateSubStrArr)
 	    	for si := 0; si < len(stateSubStrArr); si++ {
 	    	
 	    	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
@@ -411,6 +411,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	    	}
 	    	//fmt.Println(geoVarMaps[iterator].SequenceNum)
 	    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
+			//fmt.Println(sql_statement2)
 			rows2, err3 := db.Query(sql_statement2)
 			if err3 != nil {
 				//log.Fatal("SQL error "+err3.Error())
@@ -425,10 +426,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 			rowString7 := ""
 			newItem := 1
 			rowString2 = "0"
-			counting := 0
 			for rows2.Next(){
-				fmt.Println(counting)
-				counting++
 				var temp GeoCensusOutput
 				if err := rows2.Scan(&rowString5,&rowString4,&rowString6); err != nil {
 		           	    return "E"
@@ -447,7 +445,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		       			rowString7 = rowString6.String
 		       		}
 
-
+		       		
 	//////Hash function goes here!
 
 
@@ -518,32 +516,26 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	}*/
 	//fmt.Println("Below")
 	//fmt.Println(b)
-	//fmt.Println(outputArray[0].CensusVariables)
-	//fmt.Println(parsedVar)
-	parsedVar2 := strings.Replace(parsedVar,parsedVar[0:2],"",-1)
-	parsedVar2 = strings.Replace(parsedVar2,"')","",1)
-	parsedVar2 = strings.Replace(parsedVar2,"'","",-1)
-	parsedArr := strings.SplitAfter(parsedVar2,",")
 	appendString := ""
 	var apprendStrArr []string
 	//fmt.Println(outputArray)
+	//fmt.Println(geoVarMaps)
 	for count := 0;count<len(stateSubStrArr);count++{
-		for counter := 0;counter<len(parsedArr);counter++{
+		for counter := 0;counter<len(geoVarMaps);counter++{
 			//fmt.Println(parsedArr[counter])
 			//fmt.Println(strings.Replace(parsedArr[counter],",","",-1))
 			//fmt.Println(strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)]))
-			if counter + 1 !=  len(parsedArr){
-				appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])+","
+			if counter + 1 !=  len(geoVarMaps){
+				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])+","
 			} else{
-				appendString = appendString+"\""+strings.Replace(parsedArr[counter],",","",-1)+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)])
+				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])
 			}
-			
 		}
 		apprendStrArr = append(apprendStrArr,appendString)
 		appendString = ""
 		
 	}
-	fmt.Println(apprendStrArr)
+	//fmt.Println(apprendStrArr)
 	//fmt.Println(outputArray[0].CensusVariables[0][parsedVar])
 	//fmt.Println(len(outputArray[0].CensusVariables))
 	
@@ -559,16 +551,22 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	*/
 	tracts :=[]map[string]string{}
 	for count := 0;count<len(stateSubStrArr);count++{
-		if TABLE.Tract != ""{
-			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.Tract+"_tract WHERE geoid = '"+stateSubStrArr[count]+"'"
+		if TABLE.Tract == "tract"{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.StateFips+"_tract WHERE geoid = '"+stateSubStrArr[count]+"'"
+		} else if TABLE.Tract == "bg"{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.StateFips+"_bg WHERE geoid = '"+stateSubStrArr[count]+"'"
+		} else if TABLE.Tract == "county"{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_us_county WHERE geoid = '"+stateSubStrArr[count]+"'"
 		} else if TABLE.Counties == "140"{
-		sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_tract"
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_tract"
 		} else if TABLE.Counties == "050"{
 			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_us_county WHERE geoid = '"+TABLE.States+"'"
+		} else if TABLE.Counties == "150"{
+			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,namelsad,geoid FROM tl_2013_"+TABLE.States+"_bg"
 		} else {
 			sql_statement = "SELECT ST_AsGeoJSON(the_geom) as geom,name,geoid FROM tl_2013_us_state WHERE geoid = '"+TABLE.States+"'"
 		}
-		fmt.Println(sql_statement)	
+		//fmt.Println(sql_statement)	
 		rows3, err := db.Query(sql_statement)
 		if err != nil {
 			fmt.Println(sql_statement)
@@ -599,7 +597,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 			d = strings.Replace(d, "\",\"type", ",\"type", -1)
 			d = strings.Replace(d,"]]]]}\",\"properties\":{\"","]]]]},\"properties\":{\"",-1)
 	        e := "{\n  \"type\": \"FeatureCollection\",\n  \"features\": \n"+d+"}"
-	        if params["filetype"] == "shape" || params["filetype"] == "34"{													//shapefile requested
+	        if params["filetype"] == "shape" {													//shapefile requested
 		        filename := "downloads/geography.geojson"
 		 
 			    f, err5 := os.Create(filename)

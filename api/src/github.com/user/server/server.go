@@ -18,7 +18,7 @@ Server part of Geocensus project. Authored by Evan Friedkin with help from Alex 
 import (
 
 	"github.com/codegangsta/martini"
-	"github.com/martini-contrib2/cors"
+	"github.com/martini-contrib/cors"
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/user/serverAid"
   "text/template"
