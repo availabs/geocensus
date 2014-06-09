@@ -109,7 +109,8 @@ func Acs20105year() string{
             if err := rows.Scan(&table_ID, &stub); err != nil {
                     return err.Error()
             }
-
+            fmt.Println(table_ID)
+            fmt.Println(stub)
             acs2010 := map[string]string{
             	table_ID: stub,
             }
@@ -383,24 +384,47 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		var geoVarSQL string
 		var geoVarMaps []SeqAndGeoVar
 		var stateSubStrArr []string
-		arrayPos := 0
-		var hashMaps = make(map[string]int)
-		var outputArray []GeoCensusOutput
+		//arrayPos := 0
+		//var hashMaps = make(map[string]int)
+		//var outputArray []GeoCensusOutput
 		seqNumCount := 0
+		skip := 0
 		for rows.Next(){
 			if err := rows.Scan(&geoVarSQL,&rowString); err != nil {
 
         		return "C"
             }
-        var geoVarMap SeqAndGeoVar
-        geoVarMap.GeoVar = geoVarSQL
-        geoVarMap.SequenceNum = rowString
-        geoVarMaps = append(geoVarMaps,geoVarMap)
-        seqNumCount++
+            if len(geoVarMaps) == 0{
+				var geoVarMap SeqAndGeoVar
+		        geoVarMap.GeoVar = geoVarSQL
+		        geoVarMap.SequenceNum = rowString
+		        geoVarMaps = append(geoVarMaps,geoVarMap)
+		        seqNumCount++	            	
+            } else {
+            	for i := 0;i<len(geoVarMaps);i++{
+            		if geoVarMaps[i].SequenceNum == rowString{
+            			geoVarMaps[i].GeoVar = geoVarMaps[i].GeoVar+","+geoVarSQL
+            			skip = 1
+            		}
+            	}
+            	if skip == 0{
+            		var geoVarMap SeqAndGeoVar
+			        geoVarMap.GeoVar = geoVarSQL
+			        geoVarMap.SequenceNum = rowString
+			        geoVarMaps = append(geoVarMaps,geoVarMap)
+			        seqNumCount++
+            	}
+            }
+            skip = 0
     	}
-    	for iterator := 0;iterator<seqNumCount;iterator++{
-	    	stateSubStrArr = SubStringArray(TABLE.States)
-	    	for si := 0; si < len(stateSubStrArr); si++ {
+    	//fmt.Println(geoVarMaps)
+    	stateSubStrArr = SubStringArray(TABLE.States)
+    	var orderedResults []string
+	    for si := 0; si < len(stateSubStrArr); si++ {
+	    	//fmt.Println(stateSubStrArr[si])
+	    	var orderedResultsF string
+    		for iterator := 0;iterator<seqNumCount;iterator++{
+	    	
 	    	
 	    	checkStr, errS := strconv.ParseInt(geoVarMaps[iterator].SequenceNum, 10, 0)
 	    	seqStr := ""
@@ -410,24 +434,28 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	    		seqStr = geoVarMaps[iterator].SequenceNum
 	    	}
 	    	//fmt.Println(geoVarMaps[iterator].SequenceNum)
-	    	sql_statement2 := "select geoid,"+geoVarMaps[iterator].GeoVar+",name from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
-			//fmt.Println(sql_statement2)
+
+
+	    	//Fix below logic!
+
+	    	sql_statement2 := "select geoid,name,"+geoVarMaps[iterator].GeoVar+" from \"acs2010_5yr\".seq00"+seqStr+" as a join \"acs2010_5yr\".geoheader as b ON a.logrecno = b.logrecno and a.stusab = b.stusab where b.sumlevel='"+TABLE.Counties+"' and b.geoid LIKE '"+TABLE.Counties+"00US"+stateSubStrArr[si]+"%'" 	
 			rows2, err3 := db.Query(sql_statement2)
 			if err3 != nil {
 				//log.Fatal("SQL error "+err3.Error())
 				fmt.Println(sql_statement2)
 				return "D"
 			}
-			var rowString4 sql.NullString
-			var rowString5 sql.NullString
-			var rowString6 sql.NullString
-			rowString2 := ""
-			rowString3 := ""
-			rowString7 := ""
-			newItem := 1
-			rowString2 = "0"
+			// var rowString4 sql.NullString
+			// var rowString5 sql.NullString
+			// var rowString6 sql.NullString
+			// rowString2 := ""
+			// rowString3 := ""
+			// rowString7 := ""
+			// newItem := 1
+			// rowString2 = "0"
 			for rows2.Next(){
-				var temp GeoCensusOutput
+				
+				/*var temp GeoCensusOutput
 				if err := rows2.Scan(&rowString5,&rowString4,&rowString6); err != nil {
 		           	    return "E"
 		       	    }
@@ -443,101 +471,134 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 		       		}
 		       		if rowString6.Valid{
 		       			rowString7 = rowString6.String
-		       		}
+		       		}*/
+		       		ssA := strings.Split(geoVarMaps[iterator].GeoVar,",")
+		       		columnNames, err := rows2.Columns()
+					if err != nil {
+					    return "A"+err.Error() // or whatever error handling is appropriate
+					}
+					columns := make([][]byte, len(columnNames))
+					columnPointers := make([]interface{}, len(columnNames))
+					//result := make([]string, len(columnNames))
+					for i := 0; i < len(columnNames); i++ {
+					    columnPointers[i] = &columns[i]
+					}
+					if err := rows2.Scan(columnPointers...); err != nil {
+					    return "B"+err.Error()
+					}
+					for i, raw := range columns {
+						if i > 1{
+				            if raw == nil {
+				                orderedResultsF = orderedResultsF+",\""+ssA[i-2]+"\":0"
+				            } else {
+				                orderedResultsF = orderedResultsF+",\""+ssA[i-2]+"\":"+string(raw)
+				            }
+				        }
+			        }
+
+			        //fmt.Printf("%#v\n", orderedResultsF)
+
 
 		       		
-	//////Hash function goes here!
+	// //////Hash function goes here!
 
 
-		       	//First element in the array
-		       	    if arrayPos == 0 {
-		       	    	temp.Geoid = rowString3
-		       	    	temp.Tract = rowString7
-		       	        var tempGeoid string = string(geoVarMaps[iterator].GeoVar)
-		       	 	  	tempValue, err := strconv.Atoi(rowString2)
-		       	 	  	if err != nil {
-	        				tempValue = 0
-	    				}
-		       	 	  	tempMap := map[string]int{
-		       	 	  		tempGeoid:tempValue,
-		       	 	  	}
-		       	    	temp.CensusVariables = append(temp.CensusVariables,tempMap)
-		       	    	outputArray = append(outputArray,temp)
-		       	    	arrayPos++
-		       	    	hashMaps[rowString3] = arrayPos
-		       	    } else {
-		    //continuous element in the array
-		       	    	newItem = 1
-		       	    	if hashMaps[rowString3] > 0{
-		       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
-		       	    			tempValue, err := strconv.Atoi(rowString2)
-				       	 	  	if err != nil {
-			        				tempValue = 0
-			        			}
+	// 	       	//First element in the array
+	// 	       	    if arrayPos == 0 {
+	// 	       	    	temp.Geoid = rowString3
+	// 	       	    	temp.Tract = rowString7
+	// 	       	        var tempGeoid string = string(geoVarMaps[iterator].GeoVar)
+	// 	       	 	  	tempValue, err := strconv.Atoi(rowString2)
+	// 	       	 	  	if err != nil {
+	//         				tempValue = 0
+	//     				}
+	// 	       	 	  	tempMap := map[string]int{
+	// 	       	 	  		tempGeoid:tempValue,
+	// 	       	 	  	}
+	// 	       	    	temp.CensusVariables = append(temp.CensusVariables,tempMap)
+	// 	       	    	outputArray = append(outputArray,temp)
+	// 	       	    	arrayPos++
+	// 	       	    	hashMaps[rowString3] = arrayPos
+	// 	       	    } else {
+	// 	    //continuous element in the array
+	// 	       	    	newItem = 1
+	// 	       	    	if hashMaps[rowString3] > 0{
+	// 	       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
+	// 	       	    			tempValue, err := strconv.Atoi(rowString2)
+	// 			       	 	  	if err != nil {
+	// 		        				tempValue = 0
+	// 		        			}
 
-		       	    			tempMap := map[string]int{
-		       	 	  				tempGeoid:tempValue,
-		       	 	  			}
-		       	    			outputArray[hashMaps[rowString3]-1].CensusVariables = append(outputArray[hashMaps[rowString3]-1].CensusVariables,tempMap)
-		       	    			newItem = 0
-		       	    		}
+	// 	       	    			tempMap := map[string]int{
+	// 	       	 	  				tempGeoid:tempValue,
+	// 	       	 	  			}
+	// 	       	    			outputArray[hashMaps[rowString3]-1].CensusVariables = append(outputArray[hashMaps[rowString3]-1].CensusVariables,tempMap)
+	// 	       	    			newItem = 0
+	// 	       	    		}
 		   
-		       //Add new element to the array	    	
-		       	    	if newItem == 1{
-		       	    			temp.Geoid = rowString3
-		       	    			temp.Tract = rowString7
-		       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
-		       	    			tempValue, err := strconv.Atoi(rowString2)
-		       	       	 	  	if err != nil {
-			        				tempValue = 0
-	    						}
+	// 	       //Add new element to the array	    	
+	// 	       	    	if newItem == 1{
+	// 	       	    			temp.Geoid = rowString3
+	// 	       	    			temp.Tract = rowString7
+	// 	       	    			tempGeoid := string(geoVarMaps[iterator].GeoVar)
+	// 	       	    			tempValue, err := strconv.Atoi(rowString2)
+	// 	       	       	 	  	if err != nil {
+	// 		        				tempValue = 0
+	//     						}
 
-		       	    			tempMap := map[string]int{
-		       	 	  				tempGeoid:tempValue,
-		       	 	  			}
-		       	    			temp.CensusVariables = append(temp.CensusVariables,tempMap)
-		       	    			outputArray = append(outputArray,temp)
-		       	    			arrayPos++
-		       	    			hashMaps[rowString3] = arrayPos
-		       	    		}
+	// 	       	    			tempMap := map[string]int{
+	// 	       	 	  				tempGeoid:tempValue,
+	// 	       	 	  			}
+	// 	       	    			temp.CensusVariables = append(temp.CensusVariables,tempMap)
+	// 	       	    			outputArray = append(outputArray,temp)
+	// 	       	    			arrayPos++
+	// 	       	    			hashMaps[rowString3] = arrayPos
+	// 	       	    		}
 		       	    	
-		       	    }
-	///////Hash function stops here
+	// 	       	    }
+	// ///////Hash function stops here
 
 
 		       	}
-		       }
-	}
+		       	
 
-	/*b, err3 := json.Marshal(outputArray)
-    if err3 != nil {
-		//log.Fatal("Marshal error")
-		return ""
-	}*/
-	//fmt.Println("Below")
-	//fmt.Println(b)
-	appendString := ""
-	var apprendStrArr []string
-	//fmt.Println(outputArray)
-	//fmt.Println(geoVarMaps)
-	for count := 0;count<len(stateSubStrArr);count++{
-		for counter := 0;counter<len(geoVarMaps);counter++{
-			//fmt.Println(parsedArr[counter])
-			//fmt.Println(strings.Replace(parsedArr[counter],",","",-1))
-			//fmt.Println(strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)]))
-			if counter + 1 !=  len(geoVarMaps){
-				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])+","
-			} else{
-				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])
-			}
+		    }
+		    orderedResultsF = strings.Replace(orderedResultsF,",","",1)
+		    orderedResults = append(orderedResults,orderedResultsF)
+		    //fmt.Println(orderedResultsF)
 		}
-		apprendStrArr = append(apprendStrArr,appendString)
-		appendString = ""
+			//fmt.Println(orderedResults)
+
+
+// 	/*b, err3 := json.Marshal(outputArray)
+//     if err3 != nil {
+// 		//log.Fatal("Marshal error")
+// 		return ""
+// 	}*/
+// 	//fmt.Println("Below")
+// 	//fmt.Println(b)
+// 	appendString := ""
+// 	var apprendStrArr []string
+// 	//fmt.Println(outputArray)
+// 	//fmt.Println(geoVarMaps)
+// 	for count := 0;count<len(stateSubStrArr);count++{
+// 		for counter := 0;counter<len(geoVarMaps);counter++{
+// 			//fmt.Println(parsedArr[counter])
+// 			//fmt.Println(strings.Replace(parsedArr[counter],",","",-1))
+// 			//fmt.Println(strconv.Itoa(outputArray[0].CensusVariables[counter][strings.Replace(parsedArr[counter],",","",-1)]))
+// 			if counter + 1 !=  len(geoVarMaps){
+// 				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])+","
+// 			} else{
+// 				appendString = appendString+"\""+geoVarMaps[counter].GeoVar+"\":"+strconv.Itoa(outputArray[count].CensusVariables[counter][geoVarMaps[counter].GeoVar])
+// 			}
+// 		}
+// 		apprendStrArr = append(apprendStrArr,appendString)
+// 		appendString = ""
 		
-	}
-	//fmt.Println(apprendStrArr)
-	//fmt.Println(outputArray[0].CensusVariables[0][parsedVar])
-	//fmt.Println(len(outputArray[0].CensusVariables))
+// 	}
+// 	//fmt.Println(apprendStrArr)
+// 	//fmt.Println(outputArray[0].CensusVariables[0][parsedVar])
+// 	//fmt.Println(len(outputArray[0].CensusVariables))
 	
 
 	//Below is where string to be turned into a json object is created. This will fuse the given values together 
@@ -583,7 +644,7 @@ func Acs20105yearQuerySpecial(params martini.Params, TABLE GeoCensusVar2) string
 	        	}
 	        	tract := map[string]string{
 	            	"geometry": geom ,
-	            	"properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\","+apprendStrArr[count]+"}",
+	            	"properties": "{\"geoid\": \""+geoid+"\", \"namelsad\": \""+namelsad+"\","+orderedResults[count]+"}",
 	            	"type":"Feature",
 	            }
 	        	tracts = append(tracts, tract)
